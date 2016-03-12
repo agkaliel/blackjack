@@ -161,6 +161,8 @@ class BlackJack:
         # check if the player lost already
         if p > 21:
             self.state.terminate = -1
+            if agent:
+                agent.act(self.state)
             return self.state.terminate * self.state.win_total
 
         # otherwise play out the dealer
