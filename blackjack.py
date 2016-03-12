@@ -2,7 +2,7 @@
 
 Usage: 
     blackjack.py [-vd] [--hands=N] [--decks=M][--seed=S][--agent=AGENT]
-    
+
 
 Options:
     -h --help
@@ -27,7 +27,7 @@ class GameState:
         self.win_total = 0
         self.terminate = 0
         self.num_decks = num_decks  
-    
+
     def reset(self):
         self.dealer_hand = []
         self.player_hand = []
@@ -44,18 +44,18 @@ class Deck:
         self.num_decks = num_decks
         self.halfway = num_decks * 26
         self.reset()
-    
+
     def reset(self):
         self.deck = [c for c in STD_DECK*self.num_decks]
-    
+
     def shuffle(self):
         random.shuffle(self.deck)
-        
+
     def deal(self, num_cards=1, num_players=1):
         """
         Deal out the specified number of cards to the specified number of players.
         Returns a tuple of tuples and modifies the deck.
-        
+
         >>> d = Deck()
         >>> d.deal()
         [['KD']]
@@ -105,7 +105,7 @@ class BlackJack:
             return total + num_aces
         else:
             return total + 11 + (num_aces-1)    
-        
+
 
     def __init__(self, num_decks=2):
         """
@@ -114,18 +114,18 @@ class BlackJack:
         self.state = GameState(num_decks)
         self.dealer_card = ''
         self.deck = Deck(num_decks=self.state.num_decks)
-    
+
     def display_hand(self, name="Player", cards=None):
         if cards == None:
             if name=="Player":
                 cards = self.state.player_hand
             else:
                 cards = self.state.dealer_hand
-            
+
         print("{} has {} for total of {}.".format(name, 
                                                   tuple(cards), 
                                                   self.calc(cards)))
-        
+
     def start_game(self):
         # deal cards
         self.state.reset()
@@ -134,7 +134,7 @@ class BlackJack:
         # hide one dealer card
         self.dealer_card = self.state.dealer_hand.pop()
         self.state.win_total = 1        
-    
+
     def act(self, agent):
         """
         Request an action from an agent object, update game state accordingly
@@ -148,16 +148,16 @@ class BlackJack:
             self.state.terminate = 1
         elif choice != 'H':
             print("Sorry, invalid action {}.".format(choice))
-        
+
         if self.calc(self.state.player_hand) > 21:
             self.state.terminate = -1
         return choice
 
- 
-    def final(self):
+
+    def final(self, agent=None):
         self.state.dealer_hand.append(self.dealer_card)
         p = self.calc(self.state.player_hand)
-        
+
         # check if the player lost already
         if p > 21:
             self.state.terminate = -1
@@ -169,7 +169,7 @@ class BlackJack:
         self.state.terminate = 1
 
         d = self.calc(self.state.dealer_hand)
-    
+
         # see how the dealer and player compare
         if d > 21 or p > d:
             self.state.terminate = 1
@@ -177,6 +177,9 @@ class BlackJack:
             self.state.win_total = 0
         else:
             self.state.terminate = -1
+        # let the player know what the final card state was
+        if agent:
+            agent.act(self.state)
         return self.state.win_total * self.state.terminate
 
 def playAgain():
@@ -187,7 +190,7 @@ def playAgain():
     else:
         print("TTYL")
         return False
-            
+
 def main(num_hands=10, num_decks=8, verbose=True, agent_class="CommandLineAgent", seed=None):
     # double-check verbosity, if we're playing on the command line we should probably tell the player what's going on
     if agent_class=="CommandLineAgent":
@@ -210,7 +213,7 @@ def main(num_hands=10, num_decks=8, verbose=True, agent_class="CommandLineAgent"
         num_hands = int(num_hands)
     except:
         num_hands = 10
-        
+
     game = BlackJack(num_decks)
     agent = getattr(agents, agent_class)()
     total = 0
@@ -221,20 +224,20 @@ def main(num_hands=10, num_decks=8, verbose=True, agent_class="CommandLineAgent"
         if verbose:
             game.display_hand()
             game.display_hand("Dealer")
-        
+
         while game.state.terminate == 0:
             action = game.act(agent)
             if verbose:
                 print("Player chose {}".format(action))
                 game.display_hand()
-                
+
         p = game.calc(game.state.player_hand)
         if verbose:
             if p > 21:
                 print("Player went bust.")                
             else:
                 print("Player stays at {}".format(game.calc(game.state.player_hand)))
-        result = game.final()
+        result = game.final(agent)
         if verbose:
             game.display_hand("Dealer")
 
@@ -256,12 +259,12 @@ def main(num_hands=10, num_decks=8, verbose=True, agent_class="CommandLineAgent"
             print("Done game {} at {}.".format(hand, result))
     num_ties = hand + 1 - num_wins - num_losses
     print("Total winnings: {} over {} games.\n with {} wins, {} losses, {} ties.".format(total, 
-                                                                                     hand + 1,
-                                                                                     num_wins,
-                                                                                     num_losses,
-                                                                                     num_ties))
-    
-    
+                                                                                         hand + 1,
+                                                                                         num_wins,
+                                                                                         num_losses,
+                                                                                         num_ties))
+
+
 if __name__ == '__main__':
     options = docopt(__doc__)
     if (options['-d']):

@@ -213,6 +213,23 @@ class SophAgent:
             return 'H'
 
 
+class RationalAgent:
+    cardsPlayed = []
+    def act(self,state):
+
+        num_decks = state.num_decks
+        print(state.player_hand)
+        print(state.dealer_hand)
+        print()
+        if blackjack.BlackJack.calc(state.player_hand) > 16:
+            return 'S'
+        else:
+            return 'H'
+
+
+
+
+
 class CommandLineAgent:
     interactive = True
     
@@ -220,7 +237,8 @@ class CommandLineAgent:
         """
         Display the game state information and prompt for action choice
         """
-        return input("Choose an action [H]it, [S]tand, [D]ouble:").upper()
+        if state.terminate == 0:
+            return input("Choose an action [H]it, [S]tand, [D]ouble:").upper()
 
 if __name__ == '__main__':
     import doctest
