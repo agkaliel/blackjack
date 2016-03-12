@@ -214,13 +214,37 @@ class SophAgent:
 
 
 class RationalAgent:
+    #the nth position of cards played holds the number of times that n+1 has been played (still don't card about suits)
+    #for example, if two aces and a three have been played, then cardsPlayed = [2,0,1,0,0,0,0,0,0,0]
     cardsPlayed = []
-    def act(self,state):
+    for i in range(10):
+        cardsPlayed.append(0)
 
-        num_decks = state.num_decks
-        print(state.player_hand)
-        print(state.dealer_hand)
+    #addHands() will be called when all cards have been played for the current hand i.e. terminate == 1
+    def addHands(self, cards):
         print()
+        print("Cards: ", cards)
+        print()
+        for card in cards:
+            first = card[0]
+            #if the card is a 10
+            if card[1] == '0':
+                first = first + '0'
+            if first == 'A':
+                first = 1
+            elif first == 'J' or first == 'Q' or first == 'K':
+                first = 10
+            else:
+                first = int(float(first))
+            self.cardsPlayed[first-1] = self.cardsPlayed[first-1] + 1
+        print('cardsPlayed: ', self.cardsPlayed)
+
+
+    def act(self,state):
+        num_decks = state.num_decks
+        if state.terminate != 0:
+            self.addHands(state.dealer_hand + state.player_hand)
+
         if blackjack.BlackJack.calc(state.player_hand) > 16:
             return 'S'
         else:
